@@ -30,7 +30,7 @@ try {
 console.log("\nStarting stress test (1M cycles)...");
 const cipherBench = new BlazingOpossum(key);
 console.time("Benchmark1M");
-for(let i=0; i< 1000000; i++) {
+for(let i=0; i< 10000000; i++) {
     const encrypted = cipherBench.encrypt(iv, plaintext);
     const decrypted = cipherBench.decrypt(iv, encrypted);
 }
