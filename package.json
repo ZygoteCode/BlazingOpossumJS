@@ -9,5 +9,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module"
+  "type": "commonjs",
+  "dependencies": {
+    "node-addon-api": "^8.5.0"
+  }
 }

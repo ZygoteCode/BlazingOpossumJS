@@ -1,22 +1,37 @@
-import crypto from 'crypto';
-import { encrypt, decrypt } from "./blazingOpossum.js";
+const { BlazingOpossum } = require('./build/Release/blazing_opossum');
+const crypto = require('crypto');
 
-const myKey = crypto.randomBytes(32);
-const myIv = crypto.randomBytes(16);
-const msg = "Secret message post-quantum!";
+const key = crypto.randomBytes(32);
+const iv = crypto.randomBytes(16);
+const plaintext = Buffer.from("Message to be encrypted with BlazingOpossum");
 
-console.log("Started testing encrypt + decrypt cycles (1.000.000 Million) how much time take.");
-const start = process.hrtime.bigint();
+try {
+    const cipher = new BlazingOpossum(key);
 
-for (var i = 0; i < 1000000; i++) {
-    const encrypted = encrypt(myKey, myIv, msg);
-    // console.log("Encrypted (Hex):", encrypted.toString('hex'));
+    console.time("EncryptionTime");
+    const encrypted = cipher.encrypt(iv, plaintext);
+    console.timeEnd("EncryptionTime");
 
-    const decrypted = decrypt(myKey, myIv, encrypted);
-    // console.log("Decrypted:", decrypted.toString());
+    console.log("Encrypted (Hex):", Buffer.from(encrypted).toString('hex'));
+
+    console.time("DecryptionTime");
+    const decrypted = cipher.decrypt(iv, encrypted);
+    console.timeEnd("DecryptionTime");
+
+    console.log("Decrypted Text:", Buffer.from(decrypted).toString());
+
+    encrypted[0] ^= 0xFF;
+    console.log("\nTest manipulation:");
+    cipher.decrypt(iv, encrypted);
+} catch (err) {
+    console.log("Error happened: " + err);
 }
 
-const end = process.hrtime.bigint();
-const durationMs = Number(end - start) / 1_000_000;
-console.log(`Finished cycles! Duration: ${durationMs} ms.`);
-console.log("Consider: 10.000.000 million cycles took ~4950ms in C# with Ryzen 5 3600 + 32 GB RAM DDR4 3600 MHz. Here it took ~10905ms with the same hardware...");
+console.log("\nStarting stress test (1M cycles)...");
+const cipherBench = new BlazingOpossum(key);
+console.time("Benchmark1M");
+for(let i=0; i< 1000000; i++) {
+    const encrypted = cipherBench.encrypt(iv, plaintext);
+    const decrypted = cipherBench.decrypt(iv, encrypted);
+}
+console.timeEnd("Benchmark1M");
